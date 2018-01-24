@@ -37,10 +37,10 @@ void setup()
 void loop()
 {
   Suhu();
-  SensorSuhu = Suhu;
+  SensorSuhu = temp;
 
   Asap();
-  SensorAsap = Asap;
+  SensorAsap = smoke;
 
   membershipfuzzy();
   defuzifikasi();
@@ -53,7 +53,7 @@ void loop()
   Serial.print("\t Output = ");
   Serial.print(Output);
   Serial.print("\t PWM = ");
-  Serial.print(Output;
+  Serial.print(Output);
   Serial.print("\t RS_ratio = ");
   Serial.print(RS_gas);
   Serial.print("\t Tegangan = ");
@@ -63,10 +63,9 @@ void loop()
 
   analogWrite(kipas, pwm);
 
-  elscede();
+  elcede();
 
   delay(1000);
-
 }
 
 void defuzifikasi()
@@ -76,17 +75,17 @@ void defuzifikasi()
   Min[1] = min(SuhuNormal, AsapSedang);
   Min[2] = min(SuhuNormal, AsapTinggi);
 
-  Min[3] = min(SuhuAgakTInggi, AsapRendah);
-  Min[4] = min(SuhuAgakTInggi, AsapSedang);
-  Min[5] = min(SuhuAgakTInggi, AsapTinggi);
+  Min[3] = min(SuhuAgakTinggi, AsapRendah);
+  Min[4] = min(SuhuAgakTinggi, AsapSedang);
+  Min[5] = min(SuhuAgakTinggi, AsapTinggi);
 
-  Min[6] = min(SuhuTInggi, AsapRendah);
-  Min[7] = min(SuhuTInggi, AsapSedang);
-  Min[8] = min(SuhuTInggi, AsapTinggi);
+  Min[6] = min(SuhuTinggi, AsapRendah);
+  Min[7] = min(SuhuTinggi, AsapSedang);
+  Min[8] = min(SuhuTinggi, AsapTinggi);
 
-  Min[9] = min(SuhuSangatTInggi, AsapRendah);
-  Min[10] = min(SuhuSangatTInggi, AsapSedang);
-  Min[11] = min(SuhuSangatTInggi, AsapTinggi);
+  Min[9] = min(SuhuSangatTinggi, AsapRendah);
+  Min[10] = min(SuhuSangatTinggi, AsapSedang);
+  Min[11] = min(SuhuSangatTinggi, AsapTinggi);
 
   hasil[0] = Min[0] * LOT;
   hasil[1] = Min[1] * ALOT;
@@ -128,7 +127,7 @@ void elcede()
   lcd.print((float)Output);
 
   lcd.setCursor(7,1);
-  lcd.pritn("PWM=");
+  lcd.print("PWM=");
   lcd.print((float)Output);
 }
 
@@ -179,13 +178,13 @@ void membershipfuzzy()
   SuhuNormal = MemberSuhu;
   Sensor_Suhu(a=28, b=35, c=40);
   SuhuAgakTinggi = MemberSuhu;
-  SensorSuhu(a=35, b=40, c=60);
-  SuhuTInggi = MemberSuhu;
-  SensorSuhu(a=40, b=60, c=150);
-  SuhuSangatTInggi = MemberSuhu;
+  Sensor_Suhu(a=35, b=40, c=60);
+  SuhuTinggi = MemberSuhu;
+  Sensor_Suhu(a=40, b=60, c=150);
+  SuhuSangatTinggi = MemberSuhu;
 
   MemberAsap = 0;
-  Sensor_Asap(a=0.1, b=1.4, c-2.3);
+  Sensor_Asap(a=0.1, b=1.4, c=2.3);
   AsapTinggi = MemberAsap;
   Sensor_Asap(a=1.4, b=2.3, c=3.5);
   AsapSedang = MemberAsap;
@@ -193,7 +192,8 @@ void membershipfuzzy()
   AsapRendah = MemberAsap;
 }
 
-void out()
+
+void Out()
 {
    if (Output < 25)
    {
@@ -227,15 +227,15 @@ void Asap()
   sensor_volt=(float)sensorValue/1024*4.75;
   RS_gas = (4.75-sensor_volt)/sensor_volt;
 
-  /*Replace The name "R0" with the value of R0 in the demo of first test    -*/
-  Asap = RS_gas/9.81; // ratio = R5/R0
+  //Replace The name "R0" with the value of R0 in the demo of first test    -*/
+  smoke = RS_gas/9.81; // ratio = R5/R0
     /*--------------------------------------------*/
 delay(1000);
 
 }
+
 void Suhu()
 {
   temp = analogRead(tempPin);
-  temp = temp * 0.488828125;
-  
+  temp = temp * 0.488828125;  
 }
