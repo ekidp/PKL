@@ -6,7 +6,7 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 int kipas = 11;
 int pin = A0;
 int pwm;
-float tempPin = A2;
+float tempPin = A1;
 float temp = 0;
 float smoke = 0;
 int adcvalue;
@@ -46,6 +46,7 @@ void loop()
   defuzifikasi();
   Out();
 
+  pwm = Output;
   Serial.print("\t Suhu = ");
   Serial.print(SensorSuhu);
   Serial.print("\t Asap = ");
@@ -53,7 +54,7 @@ void loop()
   Serial.print("\t Output = ");
   Serial.print(Output);
   Serial.print("\t PWM = ");
-  Serial.print(Output);
+  Serial.print(pwm);
   Serial.print("\t RS_ratio = ");
   Serial.print(RS_gas);
   Serial.print("\t Tegangan = ");
@@ -61,11 +62,12 @@ void loop()
   Serial.print(sensor_volt);
   Serial.println("");
 
+
   analogWrite(kipas, pwm);
 
   elcede();
 
-  delay(1000);
+  delay(3000);
 }
 
 void defuzifikasi()
@@ -159,14 +161,14 @@ float Sensor_Suhu(float a, float b, float c)
   }
   if ((SensorSuhu >= b) && (SensorSuhu < c))
   {
-    MemberSuhu = (c = SensorSuhu) / (c - b);
+    MemberSuhu = (c - SensorSuhu) / (c - b);
   }
   if ((SensorSuhu < 28) || (SensorSuhu > 60))
   {
     MemberSuhu = 1;
   }
   if ((SensorSuhu > c) || (SensorSuhu < a))
-  {
+  { 
     MemberSuhu = 0;
   }
 }
