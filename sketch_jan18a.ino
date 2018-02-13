@@ -1,12 +1,27 @@
-#include <lm35.h>
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
+#include "AntaresESPHTTP.h"
 
-LiquidCrystal_I2C lcd(0x3F, 16, 2);
-int kipas = 11;
-int pin = A0;
+#define ACCESSKEY "0af141272a490be9:9e9c25bfafa000c1"
+#define WIFISSID "Astinet lt.15"
+#define PASSWORD "telkom2017"
+
+#include <Wire.h>
+#include <Adafruit_ADS1015.h>
+
+Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
+// Adafruit_ADS1015 ads;     /* Use thi for the 12-bit version */
+
+String projectName = "SmartChicken";
+String deviceName1 = "TemperatureSensor";
+String deviceName2 = "GasSensor";
+String deviceName3 = "ExFan";
+
+Antares antares(ACCESSKEY);
+
+  int16_t adc0, adc1;
+  
+int pin = D0;
 int pwm;
-float tempPin = A2;
+float tempPin = A0;
 float temp = 0;
 float smoke = 0;
 int adcvalue;
@@ -15,7 +30,9 @@ float sensor_volt;
 float RS_gas;
 float ratio;
 float x;
-
+int led1 = D6;
+int led2 = D7;
+int led3 = D8;
 
 float a, b, c;
 float SensorSuhu = 0, SensorAsap = 0;
@@ -29,15 +46,24 @@ int LOT=50, ALOT=100, SOT=150, ACOT=200, COT=255;
 
 void setup()
 {
-  lcd.begin();
   Serial.begin(9600);
-  pinMode(kipas, OUTPUT);
+    Wire.begin(D2,D1);
+    ads.begin();
+pinMode(led1, OUTPUT);
+pinMode(led2, OUTPUT);
+pinMode(led3, OUTPUT);
+
+    antares.setDebug(true);
+    antares.wifiConnection(WIFISSID,PASSWORD);
+  
+
 }
 
 void loop()
 {
+  
   Suhu();
-  SensorSuhu = temp;
+  SensorSuhu = adc0; 
 
   Asap();
   SensorAsap = smoke;
@@ -46,6 +72,7 @@ void loop()
   defuzifikasi();
   Out();
 
+  pwm = Output;
   Serial.print("\t Suhu = ");
   Serial.print(SensorSuhu);
   Serial.print("\t Asap = ");
@@ -53,7 +80,7 @@ void loop()
   Serial.print("\t Output = ");
   Serial.print(Output);
   Serial.print("\t PWM = ");
-  Serial.print(Output);
+  Serial.print(pwm);
   Serial.print("\t RS_ratio = ");
   Serial.print(RS_gas);
   Serial.print("\t Tegangan = ");
@@ -61,11 +88,9 @@ void loop()
   Serial.print(sensor_volt);
   Serial.println("");
 
-  analogWrite(kipas, pwm);
-
-  elcede();
-
-  delay(1000);
+  kirim();
+    
+  delay(10000);
 }
 
 void defuzifikasi()
@@ -106,31 +131,6 @@ void defuzifikasi()
 
 }
 
-
-void elcede()
-{
-  lcd.backlight();
-  lcd.setCursor(0,0);
-  lcd.print("A=");
-  lcd.setCursor(2,0);
-  lcd.print((float)SensorAsap);
-
-  lcd.setCursor(5,0);
-  lcd.print(" ");
-
-  lcd.setCursor(8,0);
-  lcd.print("S=");
-  lcd.print((float)SensorSuhu);
-
-  lcd.setCursor(0,1);
-  lcd.print("F=");
-  lcd.print((float)Output);
-
-  lcd.setCursor(7,1);
-  lcd.print("PWM=");
-  lcd.print((float)Output);
-}
-
 float Sensor_Asap(float a, float b, float c)
 {
   if ((SensorAsap >= a) && (SensorAsap < b))
@@ -159,14 +159,14 @@ float Sensor_Suhu(float a, float b, float c)
   }
   if ((SensorSuhu >= b) && (SensorSuhu < c))
   {
-    MemberSuhu = (c = SensorSuhu) / (c - b);
+    MemberSuhu = (c - SensorSuhu) / (c - b);
   }
   if ((SensorSuhu < 28) || (SensorSuhu > 60))
   {
     MemberSuhu = 1;
   }
   if ((SensorSuhu > c) || (SensorSuhu < a))
-  {
+  { 
     MemberSuhu = 0;
   }
 }
@@ -184,7 +184,7 @@ void membershipfuzzy()
   SuhuSangatTinggi = MemberSuhu;
 
   MemberAsap = 0;
-  Sensor_Asap(a=0.1, b=1.4, c-2.3);
+  Sensor_Asap(a=0.1, b=1.4, c=2.3);
   AsapTinggi = MemberAsap;
   Sensor_Asap(a=1.4, b=2.3, c=3.5);
   AsapSedang = MemberAsap;
@@ -193,39 +193,58 @@ void membershipfuzzy()
 }
 
 
+
 void Out()
 {
    if (Output < 25)
    {
     Serial.print("\tMati");
+  digitalWrite(led1, LOW);
+  digitalWrite(led2, LOW);
+  digitalWrite(led3, LOW);
    }
    if (Output >=25 && Output<75)
    {
     Serial.print("\tLambat");
+  digitalWrite(led1, HIGH);
+  digitalWrite(led2, LOW);
+  digitalWrite(led3, LOW);
    }
    if (Output >=75 && Output<125)
    {
     Serial.print("\tCukup Lambat");
+  digitalWrite(led1, LOW);
+  digitalWrite(led2, HIGH);
+  digitalWrite(led3, LOW);
    }
    if (Output >=125 && Output<175)
    {
     Serial.print("\tSedang");
+  digitalWrite(led1, LOW);
+  digitalWrite(led2, LOW);
+  digitalWrite(led3, HIGH);
    }
    if (Output >=175 && Output<225)
    {
     Serial.print("\tCukup Cepat");
+  digitalWrite(led1, HIGH);
+  digitalWrite(led2, HIGH);
+  digitalWrite(led3, LOW);
    }
    if (Output >=225)
    {
     Serial.print("\tCepat");
+  digitalWrite(led1, HIGH);
+  digitalWrite(led2, HIGH);
+  digitalWrite(led3, HIGH);
    }
 }
 
 void Asap()
 {
-  int sensorValue = analogRead(A0);
-  sensor_volt=(float)sensorValue/1024*4.75;
-  RS_gas = (4.75-sensor_volt)/sensor_volt;
+  int adc1 = ads.readADC_SingleEnded(1);
+  sensor_volt=(float)adc1 * 1 / 65536;
+  RS_gas = (1-sensor_volt)/sensor_volt;
 
   //Replace The name "R0" with the value of R0 in the demo of first test    -*/
   smoke = RS_gas/9.81; // ratio = R5/R0
@@ -236,7 +255,14 @@ delay(1000);
 
 void Suhu()
 {
-  temp = analogRead(tempPin);
-  temp = temp * 0.488828125;  
+
+  adc0 = ads.readADC_SingleEnded(0); 
+  temp = adc0 * 1024 / 65536;
+}
+
+void kirim() {
+   Serial.println(antares.storeData(projectName, deviceName1, (String)SensorSuhu, "celcius"));
+   Serial.println(antares.storeData(projectName, deviceName2, (String)SensorAsap, "ppm"));
+   Serial.println(antares.storeData(projectName, deviceName3, (String)pwm, "volt"));
 }
 
